@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Throttle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- 
+        Chosen Palette: Warm Neutrals (Slate, Zinc, Amber)
+        Application Structure Plan: A single-page educational guide structured to maximize learning and engagement. It starts with a practical, interactive demo to immediately show the "what" and "why" of throttle. This is followed by the "how" – the commented source code. Finally, it dives into the deeper "why" with an interactive tabbed section explaining core JavaScript concepts (closures, this context). This top-down approach (from practical to theoretical) makes the complex topic more digestible and user-friendly than a flat document.
+        Visualization & Content Choices: 
+        - Report Info: Throttle concept -> Goal: Demonstrate -> Viz/Method: Live button click demo -> Interaction: User clicks a button rapidly, sees raw vs. throttled event counts -> Justification: Provides a clearer, more direct, and controllable understanding of the function's rate-limiting purpose compared to a mouse-move demo.
+        - Report Info: Throttle source code -> Goal: Explain -> Viz/Method: Syntax-highlighted code block -> Interaction: Read and review -> Justification: Presents the user's implementation clearly for analysis.
+        - Report Info: Core JS concepts (closures, this) -> Goal: Organize & Explain -> Viz/Method: Interactive tabbed component -> Interaction: User clicks tabs to reveal focused explanations -> Justification: Breaks down complex theory into manageable, non-overwhelming chunks, improving comprehension.
+        CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab-active {
+            border-color: #f59e0b; /* amber-500 */
+            color: #f59e0b; /* amber-500 */
+            background-color: #fffbeb; /* amber-50 */
+        }
+        .code-block {
+            background-color: #18181b; /* zinc-900 */
+            color: #d4d4d8; /* zinc-300 */
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            overflow-x: auto;
+        }
+        .code-block .comment { color: #6b7280; } /* gray-500 */
+        .code-block .keyword { color: #f97316; } /* orange-500 */
+        .code-block .function { color: #3b82f6; } /* blue-500 */
+        .code-block .variable { color: #a3e635; } /* lime-400 */
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-slate-900 mb-2">Interactive Guide to `throttle`</h1>
+            <p class="text-lg text-slate-600">Understand how throttle works through a live demo and clear explanations.</p>
+        </header>
+
+        <main>
+            <!-- Section 1: Interactive Demo -->
+            <section id="demo" class="mb-16">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">1. See It in Action</h2>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <p class="mb-4 text-slate-600">Click the button below as fast as you can. The "Raw Clicks" counter fires on every single click. The "Throttled Function" is set to only fire at most once every 1000ms, ignoring all other clicks during the cool-down period.</p>
+                    
+                    <button id="eventButton" class="w-full py-4 px-6 bg-amber-500 text-white font-bold text-lg rounded-lg shadow-md hover:bg-amber-600 active:bg-amber-700 active:scale-95 transition-all mb-6">
+                        Click Me Rapidly!
+                    </button>
+
+                    <div class="grid md:grid-cols-2 gap-4 text-center">
+                        <div>
+                            <p class="text-sm font-medium text-slate-700 mb-1">Raw Clicks</p>
+                            <p id="rawCount" class="text-3xl font-bold text-slate-900">0</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-700 mb-1">Throttled Function Calls</p>
+                            <p id="throttledCount" class="text-3xl font-bold text-amber-600">0</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: The Code -->
+            <section id="code" class="mb-16">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">2. Your Implementation</h2>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                    <p class="mb-4 text-slate-600">This is your implementation of a "leading-edge" throttle. It fires the function immediately on the first event, then enforces a cool-down period.</p>
+                    <div class="code-block">
+                        <pre><code><span class="comment">/**
+ * @callback func
+ * @param {number} wait
+ * @return {Function}
+ */</span>
+<span class="keyword">export default function</span> <span class="function">throttle</span>(<span class="variable">func</span>, <span class="variable">wait</span>) {
+  <span class="keyword">var</span> <span class="variable">shouldThrottle</span> = <span class="keyword">false</span>;
+
+  <span class="keyword">return function</span>(...<span class="variable">args</span>){ <span class="comment">//return a function!</span>
+    <span class="comment">// If we are in the "cool-down" period, do nothing.</span>
+    <span class="keyword">if</span>(<span class="variable">shouldThrottle</span>) <span class="keyword">return</span>;
+
+    <span class="comment">// Otherwise, execute the function immediately.</span>
+    <span class="variable">func</span>.<span class="function">apply</span>(<span class="keyword">this</span>, <span class="variable">args</span>);
+
+    <span class="comment">// Enter the cool-down period.</span>
+    <span class="variable">shouldThrottle</span> = <span class="keyword">true</span>;
+    <span class="function">setTimeout</span>(() => {
+      <span class="comment">// After the wait time, exit the cool-down period.</span>
+      <span class="variable">shouldThrottle</span> = <span class="keyword">false</span>;
+    }, <span class="variable">wait</span>);
+  }
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3: Core Concepts -->
+            <section id="concepts">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">3. Core Concepts Explained</h2>
+                <div class="bg-white rounded-lg shadow-sm border border-slate-200">
+                    <div class="border-b border-slate-200">
+                        <nav class="flex -mb-px" aria-label="Tabs">
+                            <button class="tab-btn tab-active w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm" data-tab="closures">Closures & State</button>
+                            <button class="tab-btn w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm text-slate-500 hover:text-slate-700 hover:border-slate-300" data-tab="this-context">The `this` Context</button>
+                        </nav>
+                    </div>
+                    <div class="p-6">
+                        <div id="closures" class="tab-content">
+                            <h3 class="text-lg font-semibold mb-2 text-slate-800">Closures & Persistent State</h3>
+                            <p class="text-slate-600">The `throttle` function works because of a JavaScript feature called a **closure**. Here's how:</p>
+                            <ol class="list-decimal list-inside mt-4 space-y-2 text-slate-600">
+                                <li>When you first call `throttle()`, the `shouldThrottle` variable is created and set to `false`.</li>
+                                <li>The `throttle` function then returns a new inner function. This inner function is what you use as your event listener.</li>
+                                <li>Crucially, this inner function maintains a "memory" or a live link to the `shouldThrottle` variable from its parent. It doesn't get re-created on every event.</li>
+                                <li>This allows the state of `shouldThrottle` to persist across multiple calls, enabling the cool-down logic to work correctly.</li>
+                            </ol>
+                        </div>
+                        <div id="this-context" class="tab-content hidden">
+                            <h3 class="text-lg font-semibold mb-2 text-slate-800">The `this` Context</h3>
+                            <p class="text-slate-600">Your implementation correctly uses `func.apply(this, args)` to ensure the original function runs with the correct `this` context. The outer regular function `return function(...args)` dynamically receives the `this` from whatever called it (e.g., the `eventButton` element), and `.apply()` passes that context along to the original `func`.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // --- Throttle Implementation ---
+        function throttle(func, wait) {
+            var shouldThrottle = false;
+            return function(...args) { //return a function!
+                if (shouldThrottle) return;
+                func.apply(this, args);
+                shouldThrottle = true;
+                setTimeout(() => {
+                    shouldThrottle = false;
+                }, wait);
+            }
+        }
+
+        // --- Demo Logic ---
+        const eventButton = document.getElementById('eventButton');
+        const rawCountEl = document.getElementById('rawCount');
+        const throttledCountEl = document.getElementById('throttledCount');
+
+        let rawCounter = 0;
+        let throttledCounter = 0;
+
+        function incrementThrottledCounter() {
+            throttledCounter++;
+            throttledCountEl.textContent = throttledCounter;
+        }
+        
+        const throttledHandler = throttle(incrementThrottledCounter, 1000);
+
+        eventButton.addEventListener('click', () => {
+            rawCounter++;
+            rawCountEl.textContent = rawCounter;
+            throttledHandler();
+        });
+
+        // --- Tabs Logic ---
+        const tabs = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.getAttribute('data-tab');
+
+                tabs.forEach(t => t.classList.remove('tab-active'));
+                tab.classList.add('tab-active');
+
+                tabContents.forEach(content => {
+                    content.id === target ? content.classList.remove('hidden') : content.classList.add('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
